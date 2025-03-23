@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 
-from keyboards import my_comands_text, my_comands, post_categories, cancel
+from keyboards import my_comands_text, my_comands, post_categories, cancel, type_posts
 from aiogram.fsm.context import FSMContext 
 from states import WritePost
 
@@ -48,6 +48,113 @@ async def show_comands(callback: CallbackQuery):
 async def show_add_post(callback: CallbackQuery):
     await callback.message.edit_text("Выберите категорию поста", reply_markup=post_categories)
 
+# Показать все посты пользователей
+@router.callback_query(F.data == 'show_all_posts')
+async def show_all_posts(callback: CallbackQuery):
+    await callback.message.edit_text("Вы выбрали показать все посты")
+    
+    # Подключаемся к базе данных
+    async with async_session_maker() as session:
+        # Получаем все посты из базы данных
+        result = await session.execute(select(Post).filter_by(post_type="public"))
+        posts = result.scalars().all()
+        
+        # Если посты найдены, выводим их
+        if posts:
+            for post in posts:
+                # Получаем пользователя, который создал данный пост
+                post_user_result = await session.execute(select(User).where(User.tg_id == post.user_id))  # Используем where вместо filter_by
+                post_user = post_user_result.scalars().first()
+                
+                # Получаем никнейм постящего пользователя
+                post_user_nickname = post_user.nickname if post_user and post_user.nickname else "Никнейм не установлен"
+                
+                post_text = f"Ник: @{post_user_nickname}\nТип поста: {post.post_type}\nТекст: {post.text}\nДата создания: {post.created_at.strftime('%Y-%m-%d %H:%M:%S')}"
+                await callback.message.answer(post_text)
+        else:
+            await callback.message.answer("Постов нет.")
+
+    
+# Показать только мои посты
+@router.callback_query(F.data == 'show_my_posts')
+async def show_my_posts(callback: CallbackQuery):
+    await callback.message.edit_text("Выберите тип постов", reply_markup=type_posts)
+    
+
+
+
+@router.callback_query(F.data == "type_public_posts")
+async def show_public_posts(callback: CallbackQuery):
+    await callback.answer()
+    # Получаем tg_user_id из callback'а
+    tg_user_id = callback.from_user.id
+    
+    # Подключаемся к базе данных
+    async with async_session_maker() as session:
+        # Получаем пользователя по tg_id
+        result = await session.execute(select(User).filter_by(tg_id=tg_user_id))
+        user = result.scalars().first()
+
+        # Если пользователь найден
+        if user:
+            # Получаем nickname
+            nickname = user.nickname if user.nickname else "Никнейм не установлен"
+            
+            # Получаем все посты пользователя
+            result = await session.execute(select(Post).filter_by(user_id=tg_user_id, post_type="public"))
+            posts = result.scalars().all()
+            
+            # Если посты найдены, выводим их
+            if posts:
+                for post in posts:
+                    post_text = f"Ник: @{nickname}\nТип поста: {post.post_type}\nТекст: {post.text}\nДата создания: {post.created_at.strftime('%Y-%m-%d %H:%M:%S')}"
+                    await callback.message.answer(post_text)
+            else:
+                await callback.message.answer("У вас нет постов.")
+        
+        else:
+            await callback.message.answer("Пользователь не найден.")
+            
+            
+
+@router.callback_query(F.data == "type_private_posts")
+async def show_private_posts(callback: CallbackQuery):
+    await callback.answer()
+    # Получаем tg_user_id из callback'а
+    tg_user_id = callback.from_user.id
+    
+    # Подключаемся к базе данных
+    async with async_session_maker() as session:
+        # Получаем пользователя по tg_id
+        result = await session.execute(select(User).filter_by(tg_id=tg_user_id))
+        user = result.scalars().first()
+
+        # Если пользователь найден
+        if user:
+            # Получаем nickname
+            nickname = user.nickname if user.nickname else "Никнейм не установлен"
+            
+            # Получаем все посты пользователя
+            result = await session.execute(select(Post).filter_by(user_id=tg_user_id, post_type="private"))
+            posts = result.scalars().all()
+            
+            # Если посты найдены, выводим их
+            if posts:
+                for post in posts:
+                    post_text = f"Ник: @{nickname}\nТип поста: {post.post_type}\nТекст: {post.text}\nДата создания: {post.created_at.strftime('%Y-%m-%d %H:%M:%S')}"
+                    await callback.message.answer(post_text)
+            else:
+                await callback.message.answer("У вас нет постов.")
+        
+        else:
+            await callback.message.answer("Пользователь не найден.")
+    
+    
+
+
+    
+    
+    
 # Обработчик для публичного поста
 @router.callback_query(F.data == 'public_post')
 async def show_add_post(callback: CallbackQuery, state: FSMContext):
