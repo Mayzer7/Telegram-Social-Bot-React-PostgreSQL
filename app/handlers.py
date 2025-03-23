@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 
-from keyboards import my_comands_text, my_comands, post_categories, cancel, type_posts
+from keyboards import global_reply_keyboard, my_comands_text, my_comands, post_categories, cancel, type_posts
 from aiogram.fsm.context import FSMContext 
 from states import WritePost
 
@@ -38,11 +38,11 @@ async def hello(message: Message, state: FSMContext):
             reply_markup=cancel
         )
     else:
-        await message.answer('Привет, я бот для заметок', reply_markup=my_comands_text)
+        await message.answer('Привет, я бот для заметок', reply_markup=global_reply_keyboard)
     
-@router.callback_query(F.data == 'my_comands_text')
-async def show_comands(callback: CallbackQuery):
-    await callback.message.edit_text("Вот мои команды:", reply_markup=my_comands)
+@router.message(F.text == 'Главное меню')
+async def show_commands(message: Message):
+    await message.answer("Вот мои команды:", reply_markup=my_comands)
 
 @router.callback_query(F.data == 'add_post')
 async def show_add_post(callback: CallbackQuery):
@@ -192,7 +192,13 @@ async def receive_post_text(message: Message, state: FSMContext):
 # Обработчик для кнопки "Назад"
 @router.callback_query(F.data == 'back_to_menu')
 async def back_to_menu(callback: CallbackQuery):
-    await show_comands(callback)
+    # Редактируем текущее сообщение
+    await callback.message.edit_text("Вы вернулись в главное меню")
+    
+    # Вызываем show_commands, передавая callback.message
+    await show_commands(callback.message)
+    
+    await callback.answer()
     
 @router.callback_query(F.data == 'cancel')
 async def cancel_handler(callback: CallbackQuery, state: FSMContext):

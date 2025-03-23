@@ -1,4 +1,12 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+
+# Глобальная reply клавиатура
+global_reply_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="Главное меню")]  # Кнопка для возврата на главную
+    ],
+    resize_keyboard=True  # Автоматически изменять размер клавиатуры
+)
 
 my_comands_text = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Мои команды", callback_data="my_comands_text")]
