@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 
-from keyboards import my_comands_text, my_comands, post_categories
+from keyboards import my_comands_text, my_comands, post_categories, cancel
 from aiogram.fsm.context import FSMContext 
 from states import WritePost
 
@@ -20,16 +20,14 @@ async def hello(message: Message, state: FSMContext):
         post_type = data.get("post_type", "public")
         post_type_text = "публичный" if post_type == "public" else "приватный"
         await message.answer(
-            f"Вы начали писать {post_type_text} пост. Напишите его, чтобы я мог сохранить или напишите /cancel для отмены!",
+            f"Вы начали писать {post_type_text} пост. Напишите его, чтобы я мог сохранить или нажмите отмена", 
+            reply_markup=cancel
         )
     else:
         await message.answer('Привет, я бот для заметок', reply_markup=my_comands_text)
     
 
-@router.message(F.text == '/cancel')
-async def cancel_handler(message: Message, state: FSMContext):
-    await state.clear()  # Очистка всех состояний
-    await message.answer("Вы вернулись в главное меню.", reply_markup=my_comands_text)    
+
     
     
     
@@ -46,14 +44,14 @@ async def show_add_post(callback: CallbackQuery):
 @router.callback_query(F.data == 'public_post')
 async def show_add_post(callback: CallbackQuery, state: FSMContext):
     await state.update_data(post_type="public")  # Запоминаем тип поста
-    await callback.message.edit_text("Напишите публичный пост")
+    await callback.message.edit_text("Напишите публичный пост", reply_markup=cancel)
     await state.set_state(WritePost.waiting_for_text)
 
 # Обработчик для приватного поста
 @router.callback_query(F.data == 'private_post')
 async def show_add_private_post(callback: CallbackQuery, state: FSMContext):
     await state.update_data(post_type="private")  # Запоминаем тип поста
-    await callback.message.edit_text("Напишите приватный пост:")
+    await callback.message.edit_text("Напишите приватный пост:", reply_markup=cancel)
     await state.set_state(WritePost.waiting_for_text)
 
 # Универсальный обработчик для сохранения постов
@@ -80,3 +78,8 @@ async def receive_post_text(message: Message, state: FSMContext):
 @router.callback_query(F.data == 'back_to_menu')
 async def back_to_menu(callback: CallbackQuery):
     await show_comands(callback)
+    
+@router.callback_query(F.data == 'cancel')
+async def cancel_handler(callback: CallbackQuery, state: FSMContext):
+    await state.clear()  # Очистка всех состояний
+    await callback.message.edit_text("Вы вернулись в главное меню.", reply_markup=my_comands_text)    

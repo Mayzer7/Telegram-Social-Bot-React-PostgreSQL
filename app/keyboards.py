@@ -14,3 +14,7 @@ post_categories = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Приватный пост", callback_data="private_post")],
     [InlineKeyboardButton(text="Назад", callback_data="back_to_menu")]  # Кнопка возврата
 ])
+
+cancel = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Отмена", callback_data="cancel")],
+])
