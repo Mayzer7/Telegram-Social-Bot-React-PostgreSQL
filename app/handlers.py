@@ -13,8 +13,26 @@ from datetime import datetime, timedelta
 router = Router()
 
 @router.message(F.text == '/start')
-async def hello(message: Message):
-    await message.answer('Привет я бот для заметок', reply_markup=my_comands_text)
+async def hello(message: Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state == WritePost.waiting_for_text.state:
+        data = await state.get_data()
+        post_type = data.get("post_type", "public")
+        post_type_text = "публичный" if post_type == "public" else "приватный"
+        await message.answer(
+            f"Вы начали писать {post_type_text} пост. Напишите его, чтобы я мог сохранить или напишите /cancel для отмены!",
+        )
+    else:
+        await message.answer('Привет, я бот для заметок', reply_markup=my_comands_text)
+    
+
+@router.message(F.text == '/cancel')
+async def cancel_handler(message: Message, state: FSMContext):
+    await state.clear()  # Очистка всех состояний
+    await message.answer("Вы вернулись в главное меню.", reply_markup=my_comands_text)    
+    
+    
+    
     
 @router.callback_query(F.data == 'my_comands_text')
 async def show_comands(callback: CallbackQuery):
