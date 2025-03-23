@@ -5,8 +5,9 @@ from keyboards import my_comands_text, my_comands, post_categories, cancel
 from aiogram.fsm.context import FSMContext 
 from states import WritePost
 
+from sqlalchemy.future import select
 from database.db import async_session_maker
-from database.models import Post
+from database.models import Post, User
 
 from datetime import datetime, timedelta
 
@@ -14,6 +15,19 @@ router = Router()
 
 @router.message(F.text == '/start')
 async def hello(message: Message, state: FSMContext):
+    async with async_session_maker() as session:
+        existing_user = await session.execute(select(User).filter_by(tg_id=message.from_user.id))
+        existing_user = existing_user.scalar_one_or_none()
+
+        if not existing_user:
+            new_user = User(
+                tg_id=message.from_user.id,
+                username=message.from_user.first_name,
+                nickname=message.from_user.username
+            )
+            session.add(new_user)
+            await session.commit()
+    
     current_state = await state.get_state()
     if current_state == WritePost.waiting_for_text.state:
         data = await state.get_data()
@@ -25,12 +39,6 @@ async def hello(message: Message, state: FSMContext):
         )
     else:
         await message.answer('Привет, я бот для заметок', reply_markup=my_comands_text)
-    
-
-
-    
-    
-    
     
 @router.callback_query(F.data == 'my_comands_text')
 async def show_comands(callback: CallbackQuery):
