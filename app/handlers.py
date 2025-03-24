@@ -2,6 +2,7 @@ from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 
 from keyboards import global_reply_keyboard, my_comands_text, my_comands, post_categories, cancel, type_posts
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext 
 from states import WritePost
 
@@ -12,6 +13,17 @@ from database.models import Post, User
 from datetime import datetime, timedelta
 
 router = Router()
+
+@router.message(F.text == '/get_my_id')
+async def send_web_app_button(message: Message):
+    # Создаем кнопку для открытия веб-приложения
+    builder = InlineKeyboardBuilder()
+    builder.button(text="Открыть мой ID", web_app={"url": "https://f08d-138-124-89-72.ngrok-free.app"})
+    
+    await message.answer(
+        "Нажмите кнопку, чтобы увидеть ваш Telegram ID:",
+        reply_markup=builder.as_markup()
+    )
 
 @router.message(F.text == '/start')
 async def hello(message: Message, state: FSMContext):

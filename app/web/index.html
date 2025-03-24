@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Social Telegram App</title>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- Hidden but preserved Telegram ID -->
+    <div id="user-id" class="hidden"></div>
+
+    <div id="error-message" class="error hidden">
+      <p>Доступ запрещён. Пожалуйста, откройте этот сайт через Telegram.</p>
+      <a href="https://t.me/preparing_interview_test_bot" target="_blank">Открыть в Telegram</a>
+    </div>
+
+    <script type="module">
+      // Проверяем, открыл ли пользователь сайт через Telegram
+      if (window.Telegram && window.Telegram.WebApp) {
+        // Ждем инициализации Telegram Web App
+        window.Telegram.WebApp.onEvent('initialized', function () {
+          const userId = Telegram.WebApp.initDataUnsafe.user.id;
+          const userIdElement = document.getElementById('user-id');
+          userIdElement.textContent = `ID пользователя: ${userId}`;
+          userIdElement.classList.remove('hidden');
+
+          // Если все ок, показываем контент
+          const errorMessage = document.getElementById('error-message');
+          errorMessage.classList.add('hidden'); // Скрываем сообщение об ошибке
+        });
+      } else {
+        // Если не через Telegram, скрываем контент и показываем ошибку
+        const rootElement = document.getElementById('root');
+        rootElement.classList.add('hidden'); // Скрываем основной контент
+        const errorMessage = document.getElementById('error-message');
+        errorMessage.classList.remove('hidden'); // Показываем ошибку
+      }
+    </script>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
