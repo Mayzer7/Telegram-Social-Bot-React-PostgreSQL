@@ -9,7 +9,7 @@ type Post = {
   id: number;
   text: string;
   post_type: string;
-  user_id: number;
+  user_id: bigint;
   created_at: string;
   formattedDate: string; // Добавляем поле для отформатированной даты
 };
@@ -19,6 +19,7 @@ interface TelegramUser {
   first_name: string;
   last_name?: string;
   username?: string;
+  photo_url?: string;
 }
 
 function App() {
@@ -69,7 +70,7 @@ function App() {
 
   // Фильтрация постов в зависимости от состояния переключателя
   const displayedPosts = showUserPosts
-    ? posts.filter(post => post.post_type === 'private') // Отображаем только приватные посты
+    ? posts.filter(post => post.post_type === 'private' && String(post.user_id) === String(user.id)) // Отображаем только приватные посты
     : posts.filter(post => post.post_type === 'public'); // Отображаем только публичные посты
 
   return (
@@ -104,7 +105,15 @@ function App() {
         <div className="min-h-screen bg-gray-100 flex items-center justify-center">
           <div className="bg-white p-8 rounded-lg shadow-md">
             <div className="flex items-center justify-center mb-6">
-              <User className="w-16 h-16 text-blue-500" />
+              {user.photo_url ? (
+                <img 
+                  src={user.photo_url} 
+                  alt={`${user.first_name}'s profile`}
+                  className="w-20 h-20 rounded-full object-cover border-2 border-blue-500"
+                />
+              ) : (
+                <User className="w-16 h-16 text-blue-500" />
+              )}
             </div>
             <div className="text-center">
               <h1 className="text-2xl font-bold text-gray-800 mb-4">Telegram User Info</h1>
