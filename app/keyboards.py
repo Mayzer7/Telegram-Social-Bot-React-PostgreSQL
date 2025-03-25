@@ -35,6 +35,6 @@ type_posts = InlineKeyboardMarkup(inline_keyboard=[
 
 methods_view_posts = InlineKeyboardMarkup(inline_keyboard=[
     # Кнопка с веб-приложением, сразу открывает ссылку в браузере
-    [InlineKeyboardButton(text="В браузере", web_app={"url": "https://8558-2a0b-4140-d6c0-00-2.ngrok-free.app"})],
+    [InlineKeyboardButton(text="В браузере", web_app={"url": "https://72ad-138-124-89-72.ngrok-free.app"})],
     [InlineKeyboardButton(text="В самом тг", callback_data="in_telegram")]
 ])

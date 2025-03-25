@@ -99,11 +99,18 @@ function App() {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="bg-white p-8 rounded-lg shadow-md text-center">
-          <p className="text-gray-600">This app should be opened from Telegram</p>
+          <p className="text-3xl font-bold text-gray-800">
+            Это приложение работает только через Telegram бота.
+          </p>
+          <p className="text-xl text-black mt-4">
+            Перейдите по ссылке <a href="https://t.me/preparing_interview_test_bot" className="text-blue-500 underline">@preparing_interview_test_bot</a>
+          </p>
         </div>
       </div>
     );
   }
+    
+    
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 p-4">
