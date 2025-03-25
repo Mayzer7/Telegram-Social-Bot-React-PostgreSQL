@@ -130,7 +130,7 @@ function App() {
             }`}
           >
             <UserCircle size={18} />
-            Приватные посты
+            Приватные 
           </button>
         </div>
 
@@ -153,7 +153,23 @@ function App() {
                 )}
                 <div>
                   <h3 className="font-medium text-gray-800">
-                    {nicknames[post.user_id] || post.user_id}
+                    {nicknames[post.user_id] ? (
+                      <a
+                        href={`https://t.me/${nicknames[post.user_id]}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-800 hover:text-indigo-600 hover:no-underline"
+                      >
+                        @{nicknames[post.user_id]}
+                      </a>
+                    ) : (
+                      <a
+                        href={`tg://user?id=${post.user_id}`}
+                        className="text-gray-800 hover:text-indigo-600 hover:no-underline"
+                      >
+                        Пользователь {post.user_id}
+                      </a>
+                    )}
                   </h3>
                   <p className="text-xs text-gray-500">{post.formattedDate}</p>
                 </div>
@@ -161,6 +177,12 @@ function App() {
               <p className="text-gray-700 leading-relaxed">{post.text}</p>
             </div>
           ))}
+        </div>
+
+        {/* Stylish message below posts */}
+        <div className="mt-8 text-center text-gray-600 bg-white/60 p-4 rounded-lg shadow-lg">
+          <p className="text-xl font-semibold text-indigo-600">Публикуйте свои посты прямо в Телеграмм-боте!</p>
+          <p className="mt-2 text-sm">Просто добавьте новые записи, и они станут доступны в этом приложении!</p>
         </div>
       </div>
     </div>

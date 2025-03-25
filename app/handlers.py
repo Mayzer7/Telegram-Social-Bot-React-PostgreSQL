@@ -51,7 +51,7 @@ async def get_user_avatar(bot, user_id):
 async def send_web_app_button(message: Message):
     # Создаем кнопку для открытия веб-приложения
     builder = InlineKeyboardBuilder()
-    builder.button(text="Открыть мой ID", web_app={"url": "https://e1de-138-124-89-72.ngrok-free.app"})
+    builder.button(text="Открыть мой ID", web_app={"url": "https://4166-2a0b-4140-d6c0-00-2.ngrok-free.app"})
     
     await message.answer(
         "Нажмите кнопку, чтобы увидеть ваш Telegram ID:",
@@ -237,18 +237,17 @@ async def receive_post_text(message: Message, state: FSMContext):
     await message.answer(f"Ваш {post_type} пост сохранён!")  
     await state.clear()  
 
-# Обработчик для кнопки "Назад"
-@router.callback_query(F.data == 'back_to_menu')
-async def back_to_menu(callback: CallbackQuery):
-    # Редактируем текущее сообщение
-    await callback.message.edit_text("Вы вернулись в главное меню")
+
+# Обработчик для команды назад и отмена
+@router.callback_query(F.data.in_(['back_to_menu', 'cancel']))
+async def handle_back_or_cancel(callback: CallbackQuery, state: FSMContext):
+    if callback.data == 'back_to_menu':
+        await callback.message.edit_text("Вы вернулись в главное меню")
+    elif callback.data == 'cancel':
+        await state.clear()  # Очистка всех состояний
+        await callback.message.edit_text("Вы вернулись в главное меню.")
     
-    # Вызываем show_commands, передавая callback.message
+    # В любом случае вызываем show_commands, передавая callback.message
     await show_commands(callback.message)
     
     await callback.answer()
-    
-@router.callback_query(F.data == 'cancel')
-async def cancel_handler(callback: CallbackQuery, state: FSMContext):
-    await state.clear()  # Очистка всех состояний
-    await callback.message.edit_text("Вы вернулись в главное меню.", reply_markup=my_comands_text)    
