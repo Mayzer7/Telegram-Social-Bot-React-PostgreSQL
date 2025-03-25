@@ -21,6 +21,7 @@ app.use(express.json());
 // **Добавляем раздачу статических файлов**
 app.use(express.static('public'));
 
+// Маршрут для получения никнейма
 app.get("/get-nickname/:tg_id", async (req, res) => {
     const { tg_id } = req.params;
     try {
@@ -29,6 +30,22 @@ app.get("/get-nickname/:tg_id", async (req, res) => {
             res.json({ nickname: result.rows[0].nickname });
         } else {
             res.json({ nickname: tg_id }); // Если нет в базе, показываем user_id
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database error" });
+    }
+});
+
+// Маршрут для получения image_url аватарки пользователя
+app.get("/get-avatar/:tg_id", async (req, res) => {
+    const { tg_id } = req.params;
+    try {
+        const result = await pool.query("SELECT image_url FROM users WHERE tg_id = $1", [tg_id]);
+        if (result.rows.length > 0 && result.rows[0].image_url) {
+            res.json({ image_url: result.rows[0].image_url });
+        } else {
+            res.status(404).json({ error: "Avatar not found" });
         }
     } catch (err) {
         console.error(err);

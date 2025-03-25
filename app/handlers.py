@@ -1,3 +1,4 @@
+import aiohttp
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 
@@ -14,11 +15,43 @@ from datetime import datetime, timedelta
 
 router = Router()
 
+IMGBB_API_KEY = "f0d8052a78be1b2e24d986a528e49295"  # Замените на ваш API-ключ
+
+async def upload_to_imgbb(image_bytes):
+    """Загружает изображение на imgbb и возвращает ссылку."""
+    url = "https://api.imgbb.com/1/upload"
+    params = {"key": IMGBB_API_KEY}
+    
+    async with aiohttp.ClientSession() as session:
+        form = aiohttp.FormData()
+        form.add_field("image", image_bytes)
+        
+        async with session.post(url, data=form, params=params) as response:
+            data = await response.json()
+            return data.get("data", {}).get("url")
+        
+        
+async def get_user_avatar(bot, user_id):
+    """Получает аватар пользователя, загружает на imgbb и возвращает ссылку."""
+    photos = await bot.get_user_profile_photos(user_id, limit=1)
+    
+    if photos.photos:
+        file_id = photos.photos[0][-1].file_id  # Берем самое большое фото
+        file = await bot.get_file(file_id)
+        file_path = file.file_path
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"https://api.telegram.org/file/bot{bot.token}/{file_path}") as resp:
+                image_bytes = await resp.read()
+                return await upload_to_imgbb(image_bytes)
+
+    return None  # Если фото нет
+
 @router.message(F.text == '/get_my_id')
 async def send_web_app_button(message: Message):
     # Создаем кнопку для открытия веб-приложения
     builder = InlineKeyboardBuilder()
-    builder.button(text="Открыть мой ID", web_app={"url": "https://07a1-2a0b-4140-d6c0-00-2.ngrok-free.app"})
+    builder.button(text="Открыть мой ID", web_app={"url": "https://e1de-138-124-89-72.ngrok-free.app"})
     
     await message.answer(
         "Нажмите кнопку, чтобы увидеть ваш Telegram ID:",
@@ -26,16 +59,19 @@ async def send_web_app_button(message: Message):
     )
 
 @router.message(F.text == '/start')
-async def hello(message: Message, state: FSMContext):
+async def hello(message: Message, state: FSMContext, bot):
     async with async_session_maker() as session:
         existing_user = await session.execute(select(User).filter_by(tg_id=message.from_user.id))
         existing_user = existing_user.scalar_one_or_none()
 
         if not existing_user:
+            avatar_url = await get_user_avatar(bot, message.from_user.id)
+            
             new_user = User(
                 tg_id=message.from_user.id,
                 username=message.from_user.first_name,
-                nickname=message.from_user.username
+                nickname=message.from_user.username,
+                image_url=avatar_url  # Сохраняем ссылку в БД
             )
             session.add(new_user)
             await session.commit()

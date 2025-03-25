@@ -11,6 +11,7 @@ class User(Base):
     username = Column(String(100), nullable=False)  # Имя пользователя (First name)
     tg_id = Column(BigInteger, unique=True, nullable=False)  # Telegram ID пользователя (BigInteger)
     nickname = Column(String(100), unique=True, nullable=True)  # Никнейм (@username)
+    image_url = Column(String(255), nullable=True)
 
 class Post(Base):
     __tablename__ = "posts"

@@ -26,6 +26,7 @@ function App() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [showUserPosts, setShowUserPosts] = useState(false);
   const [nicknames, setNicknames] = useState<Record<string, string>>({});
+  const [avatars, setAvatars] = useState<Record<string, string>>({}); // 🔥 Сохраняем ссылки на аватарки
   const fetchedUserIds = useRef(new Set<string>());
 
   useEffect(() => {
@@ -54,29 +55,40 @@ function App() {
     fetchPosts();
   }, []);
 
-  // ✅ Теперь никнеймы загружаются **один раз** при изменении `posts`
+  // ✅ Загружаем никнеймы и аватарки пользователей
   useEffect(() => {
-    async function fetchNicknames() {
+    async function fetchUserData() {
       const newNicknames: Record<string, string> = {};
+      const newAvatars: Record<string, string> = {};
       const uniqueUserIds = new Set(posts.map(post => post.user_id));
 
       const requests = Array.from(uniqueUserIds)
         .filter(userId => !fetchedUserIds.current.has(userId))
         .map(async userId => {
-          const response = await fetch(`http://localhost:3000/get-nickname/${userId}`);
-          const data = await response.json();
-          newNicknames[userId] = data.nickname || userId;
           fetchedUserIds.current.add(userId);
+
+          // Запрос на никнейм
+          const nicknameResponse = await fetch(`http://localhost:3000/get-nickname/${userId}`);
+          const nicknameData = await nicknameResponse.json();
+          newNicknames[userId] = nicknameData.nickname || userId;
+
+          // Запрос на аватарку
+          const avatarResponse = await fetch(`http://localhost:3000/get-avatar/${userId}`);
+          const avatarData = await avatarResponse.json();
+          if (avatarData.image_url) {
+            newAvatars[userId] = avatarData.image_url;
+          }
         });
 
       await Promise.all(requests);
-      setNicknames(prev => ({ ...prev, ...newNicknames })); // ✅ Сохраняем старые никнеймы
+      setNicknames(prev => ({ ...prev, ...newNicknames }));
+      setAvatars(prev => ({ ...prev, ...newAvatars })); // 🔥 Сохраняем аватарки
     }
 
     if (posts.length > 0) {
-      fetchNicknames();
+      fetchUserData();
     }
-  }, [posts]); // 🔥 Зависимость теперь `posts`, а не `displayedPosts`
+  }, [posts]);
 
   // ✅ Фильтрация `displayedPosts` теперь только в `return`
   const displayedPosts = showUserPosts
@@ -118,7 +130,7 @@ function App() {
             }`}
           >
             <UserCircle size={18} />
-            Мои посты
+            Приватные посты
           </button>
         </div>
 
@@ -130,7 +142,15 @@ function App() {
               className="bg-white/70 backdrop-blur-sm rounded-xl p-4 shadow-lg shadow-indigo-500/10 transition-all duration-300 hover:transform hover:-translate-y-1"
             >
               <div className="flex items-center gap-3 mb-3">
-                <UserCircle className="w-10 h-10 text-gray-500" />
+                {avatars[post.user_id] ? (
+                  <img
+                    src={avatars[post.user_id]}
+                    alt="Avatar"
+                    className="w-10 h-10 rounded-full"
+                  />
+                ) : (
+                  <UserCircle className="w-10 h-10 text-gray-500" />
+                )}
                 <div>
                   <h3 className="font-medium text-gray-800">
                     {nicknames[post.user_id] || post.user_id}
