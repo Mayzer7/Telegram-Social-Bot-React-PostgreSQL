@@ -1,8 +1,9 @@
+import os
 import aiohttp
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 
-from keyboards import global_reply_keyboard, my_comands_text, my_comands, post_categories, cancel, type_posts
+from keyboards import global_reply_keyboard, my_comands_text, my_comands, post_categories, cancel, type_posts, methods_view_posts
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext 
 from states import WritePost
@@ -15,7 +16,7 @@ from datetime import datetime, timedelta
 
 router = Router()
 
-IMGBB_API_KEY = "f0d8052a78be1b2e24d986a528e49295"  # Замените на ваш API-ключ
+IMGBB_API_KEY = os.getenv("IMGBB_API_KEY") 
 
 async def upload_to_imgbb(image_bytes):
     """Загружает изображение на imgbb и возвращает ссылку."""
@@ -46,17 +47,6 @@ async def get_user_avatar(bot, user_id):
                 return await upload_to_imgbb(image_bytes)
 
     return None  # Если фото нет
-
-@router.message(F.text == '/get_my_id')
-async def send_web_app_button(message: Message):
-    # Создаем кнопку для открытия веб-приложения
-    builder = InlineKeyboardBuilder()
-    builder.button(text="Открыть мой ID", web_app={"url": "https://4166-2a0b-4140-d6c0-00-2.ngrok-free.app"})
-    
-    await message.answer(
-        "Нажмите кнопку, чтобы увидеть ваш Telegram ID:",
-        reply_markup=builder.as_markup()
-    )
 
 @router.message(F.text == '/start')
 async def hello(message: Message, state: FSMContext, bot):
@@ -96,10 +86,14 @@ async def show_commands(message: Message):
 async def show_add_post(callback: CallbackQuery):
     await callback.message.edit_text("Выберите категорию поста", reply_markup=post_categories)
 
+@router.callback_query(F.data == 'choose_method_view_posts')
+async def choose_method_view_posts(callback: CallbackQuery):
+    await callback.message.edit_text("Выберите способ отображения постов", reply_markup=methods_view_posts)
+
 # Показать все посты пользователей
-@router.callback_query(F.data == 'show_all_posts')
-async def show_all_posts(callback: CallbackQuery):
-    await callback.message.edit_text("Вы выбрали показать все посты")
+@router.callback_query(F.data == 'in_telegram')
+async def in_telegram(callback: CallbackQuery):
+    await callback.message.edit_text("Вы выбрали показать все посты в самом тг")
     
     # Подключаемся к базе данных
     async with async_session_maker() as session:
