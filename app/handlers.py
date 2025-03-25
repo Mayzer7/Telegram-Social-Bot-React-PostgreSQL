@@ -18,7 +18,7 @@ router = Router()
 async def send_web_app_button(message: Message):
     # Создаем кнопку для открытия веб-приложения
     builder = InlineKeyboardBuilder()
-    builder.button(text="Открыть мой ID", web_app={"url": "https://906e-2a0b-4140-d6c0-00-2.ngrok-free.app"})
+    builder.button(text="Открыть мой ID", web_app={"url": "https://07a1-2a0b-4140-d6c0-00-2.ngrok-free.app"})
     
     await message.answer(
         "Нажмите кнопку, чтобы увидеть ваш Telegram ID:",
