@@ -2,10 +2,7 @@
 
 ![Image](https://github.com/user-attachments/assets/20e4bc5e-6b52-4e21-bcf8-e223862bf473)
 ![Image](https://github.com/user-attachments/assets/b9b7f351-8b14-43a2-9b9a-990882b29a66)
-
-<p align="center">
-   ![Image](https://github.com/user-attachments/assets/5def370e-6b82-4229-a069-e171e5a71cc7)
-</p>
+![Image](https://github.com/user-attachments/assets/5def370e-6b82-4229-a069-e171e5a71cc7)
 
 ## Описание
 
